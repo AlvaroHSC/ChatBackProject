@@ -25,6 +25,8 @@ function App() {
           { role: "system", content: "Você é um assistente útil." },
           { role: "user", content: prompt },
         ],
+        store: true,
+        stream: true,
         temperature: 0.7, // Controle de criatividade (0 a 1)
         max_tokens: 150, // Máximo de palavras na resposta
       });
