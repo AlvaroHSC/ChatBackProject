@@ -1,9 +1,10 @@
 import "./App.css";
 import OpenAIApi from "openai";
-import { useState } from 'react'
+import { useState } from "react";
 
 function App() {
   const [input, setInput] = useState("");
+  const [file, setFile] = useState(null);
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +16,7 @@ function App() {
 
   async function askChatGPT(e) {
     e.preventDefault();
-    let prompt = input
+    let prompt = input;
     setLoading(true);
 
     try {
@@ -30,38 +31,47 @@ function App() {
         temperature: 0.7, // Controle de criatividade (0 a 1)
         max_tokens: 150, // Máximo de palavras na resposta
       });
-      console.log('response', response)
+      console.log("response", response);
 
       // return response.data.choices[0].message.content;
-      setResponse(response.data.choices[0].message.content)
+      setResponse(response.data.choices[0].message.content);
     } catch (error) {
       console.error("Erro ao acessar a API:", error);
       // return "Ocorreu um erro ao processar sua solicitação.";
-      setResponse("Ocorreu um erro ao processar sua solicitação.")
+      setResponse("Ocorreu um erro ao processar sua solicitação.");
     }
     setLoading(false);
   }
 
   return (
     <div className="App">
-      <form onSubmit={askChatGPT} className="mb-4">
-        <input
-          type="text"
-          className="border p-2 w-full rounded"
-          placeholder="Digite sua pergunta..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-          disabled={loading}
-        >
-          {loading ? "Carregando..." : "Enviar"}
-        </button>
-      </form>
+      <div className="container">
+        <form onSubmit={askChatGPT} className="mb-4">
+          <input
+            type="text"
+            className="border p-2 w-full rounded"
+            placeholder="Digite sua pergunta..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+            disabled={loading}
+          >
+            {loading ? "Carregando..." : "Enviar"}
+          </button>
+          <input
+            type="file"
+            className="border p-2 w-full rounded"
+            // placeholder="Digite sua pergunta..."
+            value={file}
+            onChange={(e) => setFile(e.target.value)}
+          />
+        </form>
 
-      <p>{response}</p>
+        <p>{response}</p>
+      </div>
     </div>
   );
 }
