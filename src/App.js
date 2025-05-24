@@ -17,6 +17,9 @@ function App() {
   async function askChatGPT(e) {
     e.preventDefault();
     let prompt = input;
+    let arquivo = file;
+    console.log('prompt', prompt)
+    console.log('arquivo', arquivo)
     setLoading(true);
 
     try {
@@ -24,17 +27,24 @@ function App() {
         model: "gpt-4o", // Ou "gpt-3.5-turbo"
         messages: [
           { role: "system", content: "Você é um assistente útil." },
-          { role: "user", content: prompt },
+          { role: "user", content: [
+            { type: "text", text: prompt },
+            { type: "file", file_id: arquivo },
+          ] },
         ],
         store: true,
-        stream: true,
+        // stream: true,
+        stream: false,
         temperature: 0.7, // Controle de criatividade (0 a 1)
         max_tokens: 150, // Máximo de palavras na resposta
       });
       console.log("response", response);
 
       // return response.data.choices[0].message.content;
-      setResponse(response.data.choices[0].message.content);
+
+      console.log('first', response.choices[0].message.content);
+
+      setResponse(response.choices[0].message.content);
     } catch (error) {
       console.error("Erro ao acessar a API:", error);
       // return "Ocorreu um erro ao processar sua solicitação.";
