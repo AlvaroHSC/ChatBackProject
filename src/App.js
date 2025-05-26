@@ -17,9 +17,27 @@ function App() {
   async function askChatGPT(e) {
     e.preventDefault();
     let prompt = input;
-    let arquivo = file;
-    console.log('prompt', prompt)
-    console.log('arquivo', arquivo)
+    // let arquivo = file;
+
+    const formData = new FormData();
+  formData.append("file", file);
+
+    console.log("prompt", prompt);
+    console.log("arquivo", formData);
+
+    if (file != null) {
+
+      try {
+        const file = await openai.files.create({
+          file: fs.createReadStream(req.file.path),
+          purpose: "assistants", // ou "fine-tune", dependendo do uso
+        });
+        
+      } catch (error) {
+        console.log('erro ao enviar arquivo', error)
+      }
+      
+    }
     setLoading(true);
 
     try {
@@ -27,10 +45,13 @@ function App() {
         model: "gpt-4o", // Ou "gpt-3.5-turbo"
         messages: [
           { role: "system", content: "Você é um assistente útil." },
-          { role: "user", content: [
-            { type: "text", text: prompt },
-            { type: "file", file_id: arquivo },
-          ] },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "file", file_id: formData },
+            ],
+          },
         ],
         store: true,
         // stream: true,
@@ -42,7 +63,7 @@ function App() {
 
       // return response.data.choices[0].message.content;
 
-      console.log('first', response.choices[0].message.content);
+      console.log("first", response.choices[0].message.content);
 
       setResponse(response.choices[0].message.content);
     } catch (error) {
@@ -56,6 +77,10 @@ function App() {
   return (
     <div className="App">
       <div className="container">
+        <div className="text-plan">
+          <p>{response || "Olá faça uma pergunta"}</p>
+        </div>
+
         <form onSubmit={askChatGPT} className="mb-4">
           <input
             type="text"
@@ -79,8 +104,6 @@ function App() {
             onChange={(e) => setFile(e.target.value)}
           />
         </form>
-
-        <p>{response}</p>
       </div>
     </div>
   );
