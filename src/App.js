@@ -17,26 +17,34 @@ function App() {
   async function askChatGPT(e) {
     e.preventDefault();
     let prompt = input;
-    // let arquivo = file;
-
-    const formData = new FormData();
-  formData.append("file", file);
+    let arquivo = 0;
 
     console.log("prompt", prompt);
-    console.log("arquivo", formData);
+    // console.log("arquivo", formData);
 
     if (file != null) {
+ 
+      const formData = new FormData();
+      formData.append("file", file);
 
       try {
-        const file = await openai.files.create({
-          file: fs.createReadStream(req.file.path),
-          purpose: "assistants", // ou "fine-tune", dependendo do uso
+        // const file = await openai.files.create({
+        //   file: fs.createReadStream(req.file.path),
+        //   purpose: "assistants", // ou "fine-tune", dependendo do uso
+        // });
+        const res = await fetch("http://localhost:3000/upload", {
+          method: "POST",
+          body: formData,
         });
-        
-      } catch (error) {
-        console.log('erro ao enviar arquivo', error)
-      }
       
+        const data = await res.json();
+        console.log("File ID:", data.fileId);
+        let arquivo = data.fileId;
+        // return data.fileId;
+
+      } catch (error) {
+        console.log("erro ao enviar arquivo", error);
+      }
     }
     setLoading(true);
 
@@ -49,7 +57,7 @@ function App() {
             role: "user",
             content: [
               { type: "text", text: prompt },
-              { type: "file", file_id: formData },
+              { type: "file", file_id: arquivo },
             ],
           },
         ],
