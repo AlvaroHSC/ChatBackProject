@@ -16,11 +16,11 @@ app.use(express.json());
 
 // Upload de arquivo para OpenAI
 app.post("/upload", upload.single("file"), async (req, res) => {
-  console.log('req.body', req.body)
+  console.log('req.file', req.file)
 
   try {
     const uploadedFile = await openai.files.create({
-      file: fs.createReadStream(req.file),
+      file: fs.createReadStream(req.file.path),
       purpose: "assistants", // ou "fine-tune" se for para treinamento
     });
 
