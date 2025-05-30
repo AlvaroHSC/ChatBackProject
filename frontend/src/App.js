@@ -59,7 +59,7 @@ function App() {
             role: "user",
             content: [
               { type: "text", text: prompt },
-              { type: "file", file_id: arquivo },
+              // { type: "file", file_id: arquivo },
             ],
           },
         ],
