@@ -16,9 +16,11 @@ app.use(express.json());
 
 // Upload de arquivo para OpenAI
 app.post("/upload", upload.single("file"), async (req, res) => {
+  console.log('req.body', req.body)
+
   try {
     const uploadedFile = await openai.files.create({
-      file: fs.createReadStream(req.file.path),
+      file: fs.createReadStream(req.file),
       purpose: "assistants", // ou "fine-tune" se for para treinamento
     });
 
@@ -32,7 +34,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8989;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });

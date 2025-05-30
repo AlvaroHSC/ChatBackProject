@@ -32,14 +32,16 @@ function App() {
         //   file: fs.createReadStream(req.file.path),
         //   purpose: "assistants", // ou "fine-tune", dependendo do uso
         // });
-        const res = await fetch("http://localhost:3000/upload", {
+        console.log('formData', formData)
+        const res = await fetch("http://localhost:8080/upload", {
           method: "POST",
           body: formData,
         });
       
         const data = await res.json();
+        console.log('data', data)
         console.log("File ID:", data.fileId);
-        let arquivo = data.fileId;
+        arquivo = data.fileId;
         // return data.fileId;
 
       } catch (error) {
