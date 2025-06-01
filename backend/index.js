@@ -17,20 +17,27 @@ app.use(express.json());
 // Upload de arquivo para OpenAI
 app.post("/upload", upload.single("file"), async (req, res) => {
   console.log('req.file', req.file)
-
-  try {
-    const uploadedFile = await openai.files.create({
-      file: fs.createReadStream(req.file.path),
-      purpose: "assistants", // ou "fine-tune" se for para treinamento
-    });
-
-    // Apaga o arquivo local após upload
-    fs.unlinkSync(req.file.path);
-
-    res.json({ fileId: uploadedFile.id });
-  } catch (err) {
-    console.error("Erro ao enviar para OpenAI:", err);
-    res.status(500).json({ error: "Erro ao enviar arquivo para OpenAI." });
+  
+  if (req.file) {
+    console.log('path', req.file.path)
+    
+    try {
+      const uploadedFile = await openai.files.create({
+        file: fs.createReadStream(req.file.path),
+        purpose: "assistants", // ou "fine-tune" se for para treinamento
+      });
+      
+      // Apaga o arquivo local após upload
+      fs.unlinkSync(req.file.path);
+      
+      res.json({ fileId: uploadedFile.id });
+    } catch (err) {
+      console.error("Erro ao enviar para OpenAI:", err);
+      res.status(500).json({ error: "Erro ao enviar arquivo para OpenAI." });
+    }
+  } else {
+    
+    return res.status(500).json({ error: "Arquivo não passado." });
   }
 });
 

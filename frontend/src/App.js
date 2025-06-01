@@ -26,7 +26,7 @@ function App() {
  
       const formData = new FormData();
       formData.append("file", file);
-      console.log('first', first)
+      console.log('file', file)
 
       try {
         // const file = await openai.files.create({
@@ -92,7 +92,7 @@ function App() {
           <p>{response || "Olá faça uma pergunta"}</p>
         </div>
 
-        <form onSubmit={askChatGPT} className="mb-4">
+        <form onSubmit={askChatGPT} className="mb-4" enctype="multipart/form-data" >
           <input
             type="text"
             className="border p-2 w-full rounded"
@@ -109,6 +109,7 @@ function App() {
           </button>
           <input
             type="file"
+            name="file"
             className="border p-2 w-full rounded"
             // placeholder="Digite sua pergunta..."
             value={file}
