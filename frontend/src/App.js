@@ -14,6 +14,27 @@ function App() {
     baseURL: "https://api.openai.com/v1", // Use este endpoint
   });
 
+  // Setar numa state todos os dados do arquivo
+  const capturarArquivo = (event) => {
+    let array_arquivos = event.target.files;
+    console.log("array_arquivos", array_arquivos);
+    // let formatos_aceito = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+
+    //verificacao do tipo de arquivo
+    if (array_arquivos[0]?.type != undefined) {
+      //verificacao do formato de arquivo, se pdf ou imagem
+      // if (formatos_aceito.includes(array_arquivos[0]?.type)) {
+
+      setFile(event.target.files);
+
+      // } else {
+
+      // document.querySelector('#input_file').value = '';
+      // return
+      // }
+    }
+  };
+
   async function askChatGPT(e) {
     e.preventDefault();
     let prompt = input;
@@ -21,32 +42,32 @@ function App() {
 
     console.log("prompt", prompt);
     // console.log("arquivo", formData);
+    console.log("file", file);
 
     if (file != null) {
- 
-      const formData = new FormData();
-      formData.append("file", file);
-      console.log('file', file)
+      for (const arq of file) {
+        const formData = new FormData();
+        formData.append("file", arq);
 
-      try {
-        // const file = await openai.files.create({
-        //   file: fs.createReadStream(req.file.path),
-        //   purpose: "assistants", // ou "fine-tune", dependendo do uso
-        // });
-        console.log('formData', formData)
-        const res = await fetch("http://localhost:8080/upload", {
-          method: "POST",
-          body: formData,
-        });
-      
-        const data = await res.json();
-        console.log('data', data)
-        console.log("File ID:", data.fileId);
-        arquivo = data.fileId;
-        // return data.fileId;
+        try {
+          // const file = await openai.files.create({
+          //   file: fs.createReadStream(req.file.path),
+          //   purpose: "assistants", // ou "fine-tune", dependendo do uso
+          // });
+          console.log("formData", formData);
+          const res = await fetch("http://localhost:8080/upload", {
+            method: "POST",
+            body: formData,
+          });
 
-      } catch (error) {
-        console.log("erro ao enviar arquivo", error);
+          const data = await res.json();
+          console.log("data", data);
+          console.log("File ID:", data.fileId);
+          arquivo = data.fileId;
+          // return data.fileId;
+        } catch (error) {
+          console.log("erro ao enviar arquivo", error);
+        }
       }
     }
     setLoading(true);
@@ -92,7 +113,11 @@ function App() {
           <p>{response || "Olá faça uma pergunta"}</p>
         </div>
 
-        <form onSubmit={askChatGPT} className="mb-4" enctype="multipart/form-data" >
+        <form
+          onSubmit={askChatGPT}
+          className="mb-4"
+          enctype="multipart/form-data"
+        >
           <input
             type="text"
             className="border p-2 w-full rounded"
@@ -112,8 +137,8 @@ function App() {
             name="file"
             className="border p-2 w-full rounded"
             // placeholder="Digite sua pergunta..."
-            value={file}
-            onChange={(e) => setFile(e.target.value)}
+            // value={file}
+            onChange={capturarArquivo}
           />
         </form>
       </div>
