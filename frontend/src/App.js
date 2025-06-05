@@ -39,6 +39,7 @@ function App() {
     e.preventDefault();
     let prompt = input;
     let arquivo = 0;
+    let extensao = ''
 
     console.log("prompt", prompt);
     // console.log("arquivo", formData);
@@ -48,9 +49,19 @@ function App() {
       for (const arq of file) {
         const formData = new FormData();
         formData.append("file", arq);
+        console.log('formData', formData)
+        console.log('arq', arq)
 
-        try {
-          // const file = await openai.files.create({
+        if (arq?.name.includes('sql')) {
+          const reader = new FileReader()
+
+          const sqlContent = reader.readAsText(arq, 'utf-8');
+          arquivo = sqlContent;
+          extensao = 'sql'
+        } else {
+          
+          try {
+            // const file = await openai.files.create({
           //   file: fs.createReadStream(req.file.path),
           //   purpose: "assistants", // ou "fine-tune", dependendo do uso
           // });
@@ -64,33 +75,40 @@ function App() {
           console.log("data", data);
           console.log("File ID:", data.fileId);
           arquivo = data.fileId;
-          // return data.fileId;
+          extensao = `${data?.split('.')[1]}`
+                    // return data.fileId;
         } catch (error) {
           console.log("erro ao enviar arquivo", error);
         }
       }
+      }
     }
     setLoading(true);
+    console.log('extensao', extensao)
+
+    let data = {
+      model: "gpt-4o", // Ou "gpt-3.5-turbo"
+      messages: [
+        { role: "system", content: "Você é um assistente útil." },
+        {
+          role: "user",
+          content: 
+            extensao == 'sql' ? 
+            [{ type: "text", text: `${prompt} ${arquivo}` }]
+            :
+            [{ type: "text", text: prompt },{ type: "file", file: { file_id: arquivo } },]
+        }    
+      ],
+      store: true,
+      // stream: true,
+      stream: false,
+      temperature: 0.7, // Controle de criatividade (0 a 1)
+      max_tokens: 150, // Máximo de palavras na resposta
+    }
+    console.log('data', data)
 
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // Ou "gpt-3.5-turbo"
-        messages: [
-          { role: "system", content: "Você é um assistente útil." },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
-              { type: "file", file_id: arquivo },
-            ],
-          },
-        ],
-        store: true,
-        // stream: true,
-        stream: false,
-        temperature: 0.7, // Controle de criatividade (0 a 1)
-        max_tokens: 150, // Máximo de palavras na resposta
-      });
+      const response = await openai.chat.completions.create(data);
       console.log("response", response);
 
       // return response.data.choices[0].message.content;

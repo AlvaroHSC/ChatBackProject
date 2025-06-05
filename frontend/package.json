@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "fs": "^0.0.1-security",
     "multer": "^2.0.0",
     "openai": "^4.103.0",
     "react": "^19.0.0",

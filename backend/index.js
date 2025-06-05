@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
+console.log('process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY)
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors()); // Permite chamadas do frontend
