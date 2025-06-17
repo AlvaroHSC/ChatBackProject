@@ -7,6 +7,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [codes, setCodes] = useState([]);
 
   const openai = new OpenAIApi({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY, // Carrega a chave do ambiente
@@ -59,28 +60,28 @@ function App() {
           arquivo = sqlContent;
           extensao = 'sql'
         } else {
-          
+
           try {
             // const file = await openai.files.create({
-          //   file: fs.createReadStream(req.file.path),
-          //   purpose: "assistants", // ou "fine-tune", dependendo do uso
-          // });
-          console.log("formData", formData);
-          const res = await fetch("http://localhost:8080/upload", {
-            method: "POST",
-            body: formData,
-          });
+            //   file: fs.createReadStream(req.file.path),
+            //   purpose: "assistants", // ou "fine-tune", dependendo do uso
+            // });
+            console.log("formData", formData);
+            const res = await fetch("http://localhost:8080/upload", {
+              method: "POST",
+              body: formData,
+            });
 
-          const data = await res.json();
-          console.log("data", data);
-          console.log("File ID:", data.fileId);
-          arquivo = data.fileId;
-          extensao = `${data?.split('.')[1]}`
-                    // return data.fileId;
-        } catch (error) {
-          console.log("erro ao enviar arquivo", error);
+            const data = await res.json();
+            console.log("data", data);
+            console.log("File ID:", data.fileId);
+            arquivo = data.fileId;
+            extensao = `${data?.split('.')[1]}`
+            // return data.fileId;
+          } catch (error) {
+            console.log("erro ao enviar arquivo", error);
+          }
         }
-      }
       }
     }
     setLoading(true);
@@ -92,18 +93,18 @@ function App() {
         { role: "system", content: "Você é um assistente útil." },
         {
           role: "user",
-          content: 
-            extensao == 'sql' ? 
-            [{ type: "text", text: `${prompt} ${arquivo}` }]
-            :
-            [{ type: "text", text: prompt },{ type: "file", file: { file_id: arquivo } },]
-        }    
+          content:
+            extensao == 'sql' ?
+              [{ type: "text", text: `${prompt} ${arquivo}` }]
+              :
+              [{ type: "text", text: prompt }, { type: "file", file: { file_id: arquivo } },]
+        }
       ],
       store: true,
       // stream: true,
       stream: false,
       temperature: 0.7, // Controle de criatividade (0 a 1)
-      max_tokens: 150, // Máximo de palavras na resposta
+      max_tokens: 800, // Máximo de palavras na resposta
     }
     console.log('data', data)
 
@@ -113,8 +114,29 @@ function App() {
 
       // return response.data.choices[0].message.content;
 
+      console.log("response", response.choices[0].message);
       console.log("first", response.choices[0].message.content);
+      let resposta = response.choices[0].message.content;
 
+      let separador = resposta.split('```');
+      let array = [];
+      console.log('>>>>>>>>>>>>>>>>>>>', separador)
+
+      for (const txtstring of separador) {
+
+        console.log("txtstring", txtstring)
+        console.log("verificacao txtstring", ['sql', 'javascript', 'bash'].includes(txtstring))
+        console.log("verificacao txtstring 2s", txtstring.indexOf('javascript'))
+        // if (['sql', 'javascript', 'bash'].includes(txtstring, 0)) {
+        // if (txtstring.indexOf('sql') || txtstring.indexOf('javascript') || txtstring.indexOf('bash')) {
+        if (txtstring.indexOf('javascript') == 0 || txtstring.indexOf('bash') == 0) {
+          array.push(txtstring);
+        }
+      }
+
+
+      console.log("codigos", array)
+      setCodes(array)
       setResponse(response.choices[0].message.content);
     } catch (error) {
       console.error("Erro ao acessar a API:", error);
@@ -124,11 +146,36 @@ function App() {
     setLoading(false);
   }
 
+  function handleDownload(codigo) {
+    // const conteudo = 'Essa é uma string que vai virar um arquivo!';
+    const nomeArquivo = 'arquivo.txt';
+
+    const blob = new Blob([codigo], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nomeArquivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url); // Limpa a URL depois do download
+  };
+
   return (
     <div className="App">
       <div className="container">
         <div className="text-plan">
-          <p>{response || "Olá faça uma pergunta"}</p>
+          <textarea
+            style={{
+              width: '80%',
+              height: '40vh'
+            }}
+            value={response || 'Olá faça uma pergunta'}
+          />
+
+          {/* <p>{response || "Olá faça uma pergunta"}</p> */}
         </div>
 
         <form
@@ -159,8 +206,36 @@ function App() {
             onChange={capturarArquivo}
           />
         </form>
+
+        <div
+          style={{
+            width: '70%',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: '10px'
+          }}
+        >
+          {codes.length > 0 && codes.map(e =>
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                display: 'flex',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                border: '1px solid #000',
+                justifyContent: 'center'
+              }}
+
+
+              onClick={() => handleDownload(e)}>{e}</div>
+          )
+          }
+        </div>
       </div>
-    </div>
+    </div >
   );
 }
 
