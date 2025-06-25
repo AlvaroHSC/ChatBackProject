@@ -38,7 +38,21 @@ function App() {
 
   async function askChatGPT(e) {
     e.preventDefault();
-    let prompt = input;
+    // let prompt = input;
+    let prompt = `Gere um projeto completo em Node.js usando Express. O projeto deve conter:
+                  Um package.json com as dependências necessárias (express, nodemon, etc.).
+                  Um servidor básico no arquivo index.js escutando na porta 3000.
+                  Rotas de exemplo em um arquivo separado (routes/example.js), com os endpoints:
+                  GET /api/hello: retorna { message: "Olá, mundo!" }
+                  POST /api/echo: recebe um JSON e retorna o mesmo conteúdo.
+                  Um middleware de tratamento de erros.
+                  Um script no package.json para rodar com nodemon.
+                  Após gerar o código completo, organize os arquivos em pastas adequadas:
+                  /routes
+                  /controllers (se necessário)
+                  index.js na raiz
+                  Gere um .zip contendo todo o projeto e disponibilize um link público para download desse zip.
+    `;
     let arquivo = 0;
     let extensao = ''
 
@@ -183,13 +197,13 @@ function App() {
           className="mb-4"
           enctype="multipart/form-data"
         >
-          <input
+          {/* <input
             type="text"
             className="border p-2 w-full rounded"
             placeholder="Digite sua pergunta..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-          />
+          /> */}
           <button
             type="submit"
             className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
