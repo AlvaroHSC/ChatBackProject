@@ -1,292 +1,113 @@
-import "./App.css";
-import OpenAIApi from "openai";
 import { useState } from "react";
 
-function App() {
-  const [input, setInput] = useState("");
-  const [file, setFile] = useState(null);
-  const [response, setResponse] = useState("");
-  const [language, setLanguage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [codes, setCodes] = useState([]);
-
-  const backendLanguages = [
-    { value: 'javascript', label: 'JavaScript (Node.js)' },
-    { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-    { value: 'csharp', label: 'C# (.NET)' },
-    { value: 'php', label: 'PHP' },
-    { value: 'ruby', label: 'Ruby' },
-    { value: 'go', label: 'Go (Golang)' },
-    { value: 'rust', label: 'Rust' },
-    { value: 'kotlin', label: 'Kotlin' },
-    { value: 'typescript', label: 'TypeScript (Node.js)' },
-    { value: 'scala', label: 'Scala' },
-    { value: 'perl', label: 'Perl' },
-    { value: 'elixir', label: 'Elixir' }
-  ];
-
-  const openai = new OpenAIApi({
-    apiKey: process.env.REACT_APP_OPENAI_API_KEY, // Carrega a chave do ambiente
-    dangerouslyAllowBrowser: true,
-    baseURL: "https://api.openai.com/v1", // Use este endpoint
-  });
-
-  // Setar numa state todos os dados do arquivo
-  const capturarArquivo = (event) => {
-    let array_arquivos = event.target.files;
-    console.log("array_arquivos", array_arquivos);
-    // let formatos_aceito = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-
-    //verificacao do tipo de arquivo
-    if (array_arquivos[0]?.type != undefined) {
-      //verificacao do formato de arquivo, se pdf ou imagem
-      // if (formatos_aceito.includes(array_arquivos[0]?.type)) {
-
-      setFile(event.target.files);
-
-      // } else {
-
-      // document.querySelector('#input_file').value = '';
-      // return
-      // }
-    }
+function getFrameworkByLanguage(lang) {
+  const frameworks = {
+    javascript: "Express",
+    typescript: "Express",
+    python: "FastAPI",
+    java: "Spring Boot",
+    csharp: "ASP.NET Core",
+    php: "Laravel",
+    ruby: "Rails",
+    go: "Gin",
+    rust: "Actix",
+    kotlin: "Ktor",
+    scala: "Play Framework",
+    elixir: "Phoenix",
   };
+  return frameworks[lang] || "";
+}
 
-  async function askChatGPT(e) {
+function App() {
+  const [language, setLanguage] = useState("");
+  const [framework, setFramework] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [zipUrl, setZipUrl] = useState("");
+
+  async function generateProject(e) {
     e.preventDefault();
-    // let prompt = input;
-    let prompt = `Gere um projeto completo em ${language} usando Express. O projeto deve conter:
-                  Um package.json com as dependências necessárias (express, nodemon, etc.).
-                  Um servidor básico no arquivo index.js escutando na porta 3000.
-                  Rotas de exemplo em um arquivo separado (routes/example.js), com os endpoints:
-                  GET /api/hello: retorna { message: "Olá, mundo!" }
-                  POST /api/echo: recebe um JSON e retorna o mesmo conteúdo.
-                  Um middleware de tratamento de erros.
-                  Um script no package.json para rodar com nodemon.
-                  Após gerar o código completo, organize os arquivos em pastas adequadas:
-                  /routes
-                  /controllers (se necessário)
-                  index.js na raiz
-                  Gere um .zip contendo todo o projeto e disponibilize um link público para download desse zip.
-    `;
-    let arquivo = 0;
-    let extensao = ''
-
-    console.log("prompt", prompt);
-    // console.log("arquivo", formData);
-    console.log("file", file);
-
-    if (file != null) {
-      for (const arq of file) {
-        const formData = new FormData();
-        formData.append("file", arq);
-        console.log('formData', formData)
-        console.log('arq', arq)
-
-        if (arq?.name.includes('sql')) {
-          const reader = new FileReader()
-
-          const sqlContent = reader.readAsText(arq, 'utf-8');
-          arquivo = sqlContent;
-          extensao = 'sql'
-        } else {
-
-          try {
-            // const file = await openai.files.create({
-            //   file: fs.createReadStream(req.file.path),
-            //   purpose: "assistants", // ou "fine-tune", dependendo do uso
-            // });
-            console.log("formData", formData);
-            const res = await fetch("http://localhost:8080/upload", {
-              method: "POST",
-              body: formData,
-            });
-
-            const data = await res.json();
-            console.log("data", data);
-            console.log("File ID:", data.fileId);
-            arquivo = data.fileId;
-            extensao = `${data?.split('.')[1]}`
-            // return data.fileId;
-          } catch (error) {
-            console.log("erro ao enviar arquivo", error);
-          }
-        }
-      }
-    }
     setLoading(true);
-    console.log('extensao', extensao)
-
-    let data = {
-      model: "gpt-4o", // Ou "gpt-3.5-turbo"
-      messages: [
-        { role: "system", content: "Você é um assistente útil." },
-        {
-          role: "user",
-          content:
-            extensao == 'sql' ?
-              [{ type: "text", text: `${prompt} ${arquivo}` }]
-              :
-              [{ type: "text", text: prompt }, { type: "file", file: { file_id: arquivo } },]
-        }
-      ],
-      store: true,
-      // stream: true,
-      stream: false,
-      temperature: 0.7, // Controle de criatividade (0 a 1)
-      max_tokens: 800, // Máximo de palavras na resposta
-    }
-    console.log('data', data)
+    setResponse("");
+    setZipUrl("");
 
     try {
-      const response = await openai.chat.completions.create(data);
-      console.log("response", response);
+      const res = await fetch("http://localhost:8989/generate-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language, framework }),
+      });
 
-      // return response.data.choices[0].message.content;
-
-      console.log("response", response.choices[0].message);
-      console.log("first", response.choices[0].message.content);
-      let resposta = response.choices[0].message.content;
-
-      let separador = resposta.split('```');
-      let array = [];
-      console.log('>>>>>>>>>>>>>>>>>>>', separador)
-
-      for (const txtstring of separador) {
-
-        console.log("txtstring", txtstring)
-        console.log("verificacao txtstring", ['sql', 'javascript', 'bash'].includes(txtstring))
-        console.log("verificacao txtstring 2s", txtstring.indexOf('javascript'))
-        // if (['sql', 'javascript', 'bash'].includes(txtstring, 0)) {
-        // if (txtstring.indexOf('sql') || txtstring.indexOf('javascript') || txtstring.indexOf('bash')) {
-        if (txtstring.indexOf('javascript') == 0 || txtstring.indexOf('bash') == 0) {
-          array.push(txtstring);
-        }
+      const data = await res.json();
+      if (data.error) {
+        setResponse("Erro: " + data.error);
+      } else {
+        setResponse(data.chatResponse);
+        setZipUrl(data.projectZipUrl);
       }
-
-
-      console.log("codigos", array)
-      setCodes(array)
-      setResponse(response.choices[0].message.content);
-    } catch (error) {
-      console.error("Erro ao acessar a API:", error);
-      // return "Ocorreu um erro ao processar sua solicitação.";
-      setResponse("Ocorreu um erro ao processar sua solicitação.");
+    } catch (err) {
+      setResponse("Erro na requisição: " + err.message);
     }
     setLoading(false);
   }
 
-  function handleDownload(codigo) {
-    // const conteudo = 'Essa é uma string que vai virar um arquivo!';
-    const nomeArquivo = 'arquivo.txt';
-
-    const blob = new Blob([codigo], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = nomeArquivo;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url); // Limpa a URL depois do download
-  };
-
   return (
-    <div className="App">
-      <div className="container">
-        <div className="text-plan">
-          <textarea
-            style={{
-              width: '80%',
-              height: '40vh'
+    <div style={{ padding: 20 }}>
+      <form onSubmit={generateProject}>
+        <label>
+          Linguagem:
+          <select
+            value={language}
+            onChange={(e) => {
+              setLanguage(e.target.value);
+              setFramework("");
             }}
-            value={response || 'Olá faça uma pergunta'}
-          />
-
-          {/* <p>{response || "Olá faça uma pergunta"}</p> */}
-        </div>
-
-        <form
-          onSubmit={askChatGPT}
-          className="mb-4"
-          enctype="multipart/form-data"
-        >
-          <div>
-          {/* <input
-            type="text"
-            className="border p-2 w-full rounded"
-            placeholder="Digite sua pergunta..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            /> */}
-          <input
-            type="file"
-            name="file"
-            className="border p-2 w-full rounded"
-            // placeholder="Digite sua pergunta..."
-            // value={file}
-            onChange={capturarArquivo}
-          />
-
-          <button
-            type="submit"
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-            disabled={loading}
           >
-            {loading ? "Carregando..." : "Enviar"}
-          </button>
-          </div>
+            <option value="">Selecione</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="csharp">C#</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="scala">Scala</option>
+            <option value="elixir">Elixir</option>
+          </select>
+        </label>
+        {language && (
+          <label style={{ marginLeft: 10 }}>
+            <input
+              type="checkbox"
+              onChange={(e) =>
+                setFramework(e.target.checked ? getFrameworkByLanguage(language) : "")
+              }
+            />{" "}
+            Usar framework: {getFrameworkByLanguage(language)}
+          </label>
+        )}
 
-          <div>
-            <label for="language">Linguagem:</label>
-            <select
-              name="language"
-              className="border p-2 w-full rounded"
-              // type="select "
-              // placeholder="Digite sua pergunta..."
-              // value={file}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              {backendLanguages.map(e =>
-                <option value={e?.value} > {e?.label}</option>
-              )}
-            </select>
-          </div>
+        <button type="submit" disabled={loading} style={{ marginLeft: 10 }}>
+          {loading ? "Gerando..." : "Gerar Projeto"}
+        </button>
+      </form>
 
-        </form>
+      <textarea
+        style={{ width: "100%", height: "300px", marginTop: 20 }}
+        value={response}
+        readOnly
+      />
 
-        <div
-          style={{
-            width: '70%',
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: '10px'
-          }}
-        >
-          {codes.length > 0 && codes.map(e =>
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                display: 'flex',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                border: '1px solid #000',
-                justifyContent: 'center'
-              }}
-
-
-              onClick={() => handleDownload(e)}>{e}</div>
-          )
-          }
+      {zipUrl && (
+        <div style={{ marginTop: 20 }}>
+          <a href={zipUrl} target="_blank" rel="noreferrer">
+            <button>Baixar projeto .zip</button>
+          </a>
         </div>
-      </div>
-    </div >
+      )}
+    </div>
   );
 }
 
