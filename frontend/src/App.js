@@ -6,8 +6,25 @@ function App() {
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
   const [response, setResponse] = useState("");
+  const [language, setLanguage] = useState("");
   const [loading, setLoading] = useState(false);
   const [codes, setCodes] = useState([]);
+
+  const backendLanguages = [
+    { value: 'javascript', label: 'JavaScript (Node.js)' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'csharp', label: 'C# (.NET)' },
+    { value: 'php', label: 'PHP' },
+    { value: 'ruby', label: 'Ruby' },
+    { value: 'go', label: 'Go (Golang)' },
+    { value: 'rust', label: 'Rust' },
+    { value: 'kotlin', label: 'Kotlin' },
+    { value: 'typescript', label: 'TypeScript (Node.js)' },
+    { value: 'scala', label: 'Scala' },
+    { value: 'perl', label: 'Perl' },
+    { value: 'elixir', label: 'Elixir' }
+  ];
 
   const openai = new OpenAIApi({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY, // Carrega a chave do ambiente
@@ -39,7 +56,7 @@ function App() {
   async function askChatGPT(e) {
     e.preventDefault();
     // let prompt = input;
-    let prompt = `Gere um projeto completo em Node.js usando Express. O projeto deve conter:
+    let prompt = `Gere um projeto completo em ${language} usando Express. O projeto deve conter:
                   Um package.json com as dependências necessárias (express, nodemon, etc.).
                   Um servidor básico no arquivo index.js escutando na porta 3000.
                   Rotas de exemplo em um arquivo separado (routes/example.js), com os endpoints:
@@ -197,20 +214,14 @@ function App() {
           className="mb-4"
           enctype="multipart/form-data"
         >
+          <div>
           {/* <input
             type="text"
             className="border p-2 w-full rounded"
             placeholder="Digite sua pergunta..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-          /> */}
-          <button
-            type="submit"
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-            disabled={loading}
-          >
-            {loading ? "Carregando..." : "Enviar"}
-          </button>
+            /> */}
           <input
             type="file"
             name="file"
@@ -219,6 +230,32 @@ function App() {
             // value={file}
             onChange={capturarArquivo}
           />
+
+          <button
+            type="submit"
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+            disabled={loading}
+          >
+            {loading ? "Carregando..." : "Enviar"}
+          </button>
+          </div>
+
+          <div>
+            <label for="language">Linguagem:</label>
+            <select
+              name="language"
+              className="border p-2 w-full rounded"
+              // type="select "
+              // placeholder="Digite sua pergunta..."
+              // value={file}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              {backendLanguages.map(e =>
+                <option value={e?.value} > {e?.label}</option>
+              )}
+            </select>
+          </div>
+
         </form>
 
         <div
