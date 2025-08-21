@@ -30,9 +30,9 @@ function App() {
     setLoading(true);
     setResponse("");
     setZipUrl("");
-
+  
     try {
-      const res = await fetch("http://localhost:8989/generate-project", {
+      const res = await fetch("http://localhost:8080/generate-project", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ language, framework }),

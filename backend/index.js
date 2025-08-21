@@ -14,17 +14,18 @@ app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-
 // Pasta pública para os arquivos zip
 const publicDir = path.join(__dirname, "files");
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
-app.use('/files', express.static(publicDir));
+app.use("/files", express.static(publicDir));
 
 app.post("/generate-project", async (req, res) => {
   try {
     const { language, framework } = req.body;
 
-    const prompt = `Gere um projeto backend completo em ${language}${framework ? ` usando o framework ${framework}` : ""}.
+    const prompt = `Gere um projeto backend completo em ${language}${
+      framework ? ` usando o framework ${framework}` : ""
+    }.
 
 O projeto deve conter:
 - Um arquivo de configuração (package.json, pyproject.toml, etc) com as dependências necessárias.
@@ -38,7 +39,7 @@ O projeto deve conter:
       model: "gpt-4o",
       messages: [
         { role: "system", content: "Você é um assistente útil." },
-        { role: "user", content: prompt }
+        { role: "user", content: prompt },
       ],
       max_tokens: 2000,
     });
@@ -46,7 +47,8 @@ O projeto deve conter:
     const code = completion.choices[0].message.content;
 
     const projectDir = path.join(__dirname, "temp_project");
-    if (!fs.existsSync(projectDir)) fs.mkdirSync(projectDir, { recursive: true });
+    if (!fs.existsSync(projectDir))
+      fs.mkdirSync(projectDir, { recursive: true });
 
     // Detecta extensão com base na linguagem
     const extByLang = {
@@ -61,7 +63,7 @@ O projeto deve conter:
       rust: "rs",
       kotlin: "kt",
       scala: "scala",
-      elixir: "ex"
+      elixir: "ex",
     };
     const ext = extByLang[language.toLowerCase()] || "txt";
 
@@ -90,7 +92,6 @@ O projeto deve conter:
     archive.pipe(output);
     archive.directory(projectDir, false);
     archive.finalize();
-
   } catch (error) {
     console.error("Erro interno:", error);
     res.status(500).json({ error: "Erro ao gerar projeto" });
